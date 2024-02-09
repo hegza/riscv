@@ -84,7 +84,11 @@ _abs_start:
 // ZERO OUT GENERAL-PURPOSE REGISTERS
 riscv_rt_macros::loop_global_asm!("    li x{}, 0", 1, 10);
 // a0..a2 (x10..x12) skipped
+#[cfg(riscvi)]
 riscv_rt_macros::loop_global_asm!("    li x{}, 0", 13, 32);
+// RV32E removes x16..x31
+#[cfg(riscve)]
+riscv_rt_macros::loop_global_asm!("    li x{}, 0", 13, 16);
 
 // INITIALIZE GLOBAL POINTER, STACK POINTER, AND FRAME POINTER
 cfg_global_asm!(
@@ -120,8 +124,11 @@ cfg_global_asm!(
     "la t1, _stack_start",
     #[cfg(not(feature = "single-hart"))]
     "sub t1, t1, t0",
-    "andi sp, t1, -16 // align stack to 16-bytes
-    add s0, sp, zero",
+    #[cfg(riscvi)]
+    "andi sp, t1, -16", // align stack to 16-bytes (RVI)
+    #[cfg(riscve)]
+    "andi sp, t1, -4", // align stack to 4-bytes (RVE)
+    "add s0, sp, zero",
 );
 
 // STORE A0..A2 IN THE STACK, AS THEY WILL BE NEEDED LATER BY main

@@ -411,9 +411,17 @@ fn weak_start_trap(arch: RiscvArch) -> TokenStream {
         RiscvArch::Rv32 => 4,
         RiscvArch::Rv64 => 8,
     };
-    // ensure we do not break that sp is 16-byte aligned
+    // ensure we do not break that sp is 16-byte aligned (RVI)
+    #[cfg(riscvi)]
     if (TRAP_SIZE * width) % 16 != 0 {
         return parse::Error::new(Span::call_site(), "Trap frame size must be 16-byte aligned")
+            .to_compile_error()
+            .into();
+    }
+    // ensure we do not break that sp is 4-byte aligned (RVE)
+    #[cfg(riscve)]
+    if (TRAP_SIZE * width) % 4 != 0 {
+        return parse::Error::new(Span::call_site(), "Trap frame size must be 4-byte aligned")
             .to_compile_error()
             .into();
     }
