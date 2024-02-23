@@ -102,6 +102,7 @@ SECTIONS
   {
     __stext = .;
 
+    KEEP(*(.vectors .vectors.*))
     /* Put reset handler first in .text section so it ends up as the entry */
     /* point of the program. */
     KEEP(*(.init));

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Align stack pointer to 4-bytes on RVE
+- Place the trap vector (`.vectors`) at start of program to match our simulator ABI
 
 ## [v0.14.0] - 2025-02-18
 
