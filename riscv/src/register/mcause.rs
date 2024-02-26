@@ -12,7 +12,7 @@ read_only_csr! {
 read_only_csr_field! {
     Mcause,
     /// Returns the `code` field.
-    code: [0:30],
+    code: [0:11],
 }
 
 #[cfg(not(target_arch = "riscv32"))]
