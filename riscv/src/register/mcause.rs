@@ -126,7 +126,8 @@ impl Mcause {
     /// Returns the code field
     #[inline]
     pub fn code(&self) -> usize {
-        self.bits & !(1 << (usize::BITS as usize - 1))
+        // [11:0]
+        self.bits & 0xfff
     }
 
     /// Trap Cause
