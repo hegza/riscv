@@ -320,7 +320,7 @@ enum RiscvArch {
 }
 
 /// Size of the trap frame (in number of registers)
-const TRAP_SIZE: usize = 16;
+const TRAP_SIZE: usize = 10;
 
 #[rustfmt::skip]
 /// List of the register names to be stored in the trap frame
@@ -329,9 +329,13 @@ const TRAP_FRAME: [&str; TRAP_SIZE] = [
     "t0",
     "t1",
     "t2",
+    #[cfg(riscvi)]
     "t3",
+    #[cfg(riscvi)]
     "t4",
+    #[cfg(riscvi)]
     "t5",
+    #[cfg(riscvi)]
     "t6",
     "a0",
     "a1",
@@ -339,7 +343,9 @@ const TRAP_FRAME: [&str; TRAP_SIZE] = [
     "a3",
     "a4",
     "a5",
+    #[cfg(riscvi)]
     "a6",
+    #[cfg(riscvi)]
     "a7",
 ];
 
