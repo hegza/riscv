@@ -109,9 +109,9 @@ cfg_global_asm!(
     #[cfg(not(riscvm))]
     "beqz t2, 2f  // Jump if single-hart
     mv t1, t2
-    mv t3, t0
+    mv t2, t0
 1:
-    add t0, t0, t3
+    add t0, t0, t2
     addi t1, t1, -1
     bnez t1, 1b
 2:  ",
