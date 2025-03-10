@@ -113,8 +113,11 @@ cfg_global_asm!(
     "la t1, _stack_start",
     #[cfg(not(feature = "single-hart"))]
     "sub t1, t1, t0",
-    "andi sp, t1, -16 // align stack to 16-bytes
-    add s0, sp, zero",
+    #[cfg(riscvi)]
+    "andi sp, t1, -16", // align stack to 16-bytes (RVI)
+    #[cfg(riscve)]
+    "andi sp, t1, -4", // align stack to 4-bytes (RVE)
+    "add s0, sp, zero",
 );
 
 // STORE A0..A2 IN THE STACK, AS THEY WILL BE NEEDED LATER BY main
