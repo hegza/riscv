@@ -20,6 +20,7 @@ rt = []
 rt-v-trap = ["rt"]
 riscv-rt = ["rt", "syn/extra-traits", "syn/full"]
 rvrt-pre-default-start-trap = ["riscv-rt"]
+rvrt-u-boot = ["riscv-rt"]
 s-mode = []
 
 [dependencies]

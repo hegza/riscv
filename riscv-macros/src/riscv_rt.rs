@@ -11,6 +11,7 @@ pub mod asm;
 /// Enum representing the supported runtime function attributes
 pub enum Fn {
     PostInit,
+    Entry,
 }
 
 impl Fn {
@@ -18,6 +19,12 @@ impl Fn {
     pub fn post_init(args: TokenStream, input: TokenStream) -> TokenStream {
         let errors = Self::PostInit.check_args_empty(args).err();
         Self::PostInit.quote_fn(input, errors)
+    }
+
+    /// Convenience method to generate the token stream for the `entry` attribute
+    pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
+        let errors = Self::Entry.check_args_empty(args).err();
+        Self::Entry.quote_fn(input, errors)
     }
 
     /// Generate the token stream for the function with the given attribute
@@ -90,6 +97,10 @@ impl Fn {
         // Use this match to specify expected input arguments for different functions in the future
         match self {
             Self::PostInit => self.check_fn_args(inputs, &["usize"], errors),
+            #[cfg(not(feature = "rvrt-u-boot"))]
+            Self::Entry => self.check_fn_args(inputs, &["usize", "usize", "usize"], errors),
+            #[cfg(feature = "rvrt-u-boot")]
+            Self::Entry => self.check_fn_args(inputs, &["c_int", "*const *const c_char"], errors),
         }
     }
 
@@ -98,6 +109,7 @@ impl Fn {
         // Use this match to specify expected output types for different functions in the future
         match self {
             Self::PostInit => check_output_empty(output, errors),
+            Self::Entry => check_output_never(output, errors),
         }
     }
 
@@ -111,7 +123,7 @@ impl Fn {
 
         // Use this match to specify extra items for different functions in the future
         match self {
-            Self::PostInit => None,
+            Self::PostInit | Self::Entry => None,
         }
     }
 
@@ -120,11 +132,16 @@ impl Fn {
         // Use this match to specify export names for different functions in the future
         let export_name = match self {
             Self::PostInit => Some("__post_init".to_string()),
+            Self::Entry => Some("main".to_string()),
         };
 
         export_name.map(|name| match self {
             Self::PostInit => quote! {
                 #[export_name = #name]
+            },
+            Self::Entry => quote! {
+                // to avoid two main symbols when testing on host
+                #[cfg_attr(any(target_arch = "riscv32", target_arch = "riscv64"), export_name = #name)]
             },
         })
     }
@@ -134,7 +151,7 @@ impl Fn {
         // Use this match to specify section names for different functions in the future
         let section_name: Option<String> = match self {
             // TODO: check if we want specific sections for these functions
-            Self::PostInit => None,
+            Self::PostInit | Self::Entry => None,
         };
 
         section_name.map(|section| quote! {
@@ -246,5 +263,12 @@ fn check_output_empty(output: &ReturnType, errors: &mut Option<Error>) {
 
     if !is_valid {
         combine_err(errors, Error::new(output.span(), "return type must be ()"));
+    }
+}
+
+/// Make sure the output type is `!` (never)
+fn check_output_never(output: &ReturnType, errors: &mut Option<Error>) {
+    if !matches!(output, ReturnType::Type(_, ty) if matches!(**ty, Type::Never(_))) {
+        combine_err(errors, Error::new(output.span(), "return type must be !"));
     }
 }
