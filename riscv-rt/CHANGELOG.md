@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## v0.17.2 - Unreleased
+
+### Changed
+
+- Use macros from `riscv-macros` instead of `riscv-rt-macros`
 
 ## v0.17.1 - 2026-01-13
 

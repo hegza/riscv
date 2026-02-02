@@ -1,6 +1,6 @@
 [package]
 name = "riscv-rt"
-version = "0.17.1"
+version = "0.17.2"
 rust-version = "1.81"
 repository = "https://github.com/rust-embedded/riscv"
 authors = ["The RISC-V Team <risc-v@teams.rust-embedded.org>"]
@@ -27,6 +27,7 @@ riscv-target-parser = { path = "../riscv-target-parser", version = "0.1.2" }
 riscv = { path = "../riscv", version = "0.16.0", features = ["rt"] }
 riscv-types = { path = "../riscv-types", version = "0.1.0" }
 riscv-rt-macros = { path = "macros", version = "0.6.1" }
+riscv-macros = { path = "../riscv-macros", version = "0.4.1", features = ["riscv-rt"] }
 
 defmt = { version = "1.0.1", optional = true }
 
@@ -38,9 +39,9 @@ riscv = { path = "../riscv", version = "0.16.0", features = ["critical-section-s
 [features]
 pre-init = []
 post-init = []
-s-mode = ["riscv-rt-macros/s-mode"]
+s-mode = ["riscv-rt-macros/s-mode", "riscv-macros/s-mode"]
 single-hart = []
-v-trap = ["riscv-rt-macros/v-trap", "riscv/rt-v-trap"]
+v-trap = ["riscv-rt-macros/v-trap", "riscv/rt-v-trap", "riscv-macros/rt-v-trap"]
 u-boot = ["riscv-rt-macros/u-boot", "single-hart"]
 no-interrupts = []
 no-exceptions = []
@@ -50,4 +51,4 @@ no-xtvec = []
 device = []
 memory = []
 defmt = ["dep:defmt"]
-pre-default-start-trap = ["riscv-rt-macros/pre-default-start-trap"]
+pre-default-start-trap = ["riscv-rt-macros/pre-default-start-trap", "riscv-macros/rvrt-pre-default-start-trap"]
