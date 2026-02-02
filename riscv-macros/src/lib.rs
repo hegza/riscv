@@ -63,6 +63,34 @@ pub fn pac_enum(attr: TokenStream, item: TokenStream) -> TokenStream {
     .into()
 }
 
+/// Attribute to mark which function will be called before jumping to the entry point.
+/// You must enable the `post-init` feature in the `riscv-rt` crate to use this macro.
+///
+/// In contrast with `__pre_init`, this function is called after the static variables
+/// are initialized, so it is safe to access them. It is also safe to run Rust code.
+///
+/// The function must have the signature of `[unsafe] fn([usize])`, where the argument
+/// corresponds to the hart ID of the current hart. This is useful for multi-hart systems
+/// to perform hart-specific initialization.
+///
+/// # IMPORTANT
+///
+/// This attribute can appear at most *once* in the dependency graph.
+///
+/// # Examples
+///
+/// ```
+/// #[riscv_macros::post_init]
+/// unsafe fn before_main(hart_id: usize) {
+///     // do something here
+/// }
+/// ```
+#[cfg(feature = "riscv-rt")]
+#[proc_macro_attribute]
+pub fn post_init(args: TokenStream, input: TokenStream) -> TokenStream {
+    riscv_rt::Fn::post_init(args, input)
+}
+
 /// Temporary patch macro to deal with LLVM bug.
 ///
 /// # Note

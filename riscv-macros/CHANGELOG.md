@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- New `post_init` macro for Rust routines that must be executed before main.
 - New `rvrt_llvm_arch_patch` and `rvrt_default_start_trap` for generating assembly code
   required by the `riscv-rt` crate.
 - New `riscv-rt` feature to opt-in `riscv-rt`-related macros.
