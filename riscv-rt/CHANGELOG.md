@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Use macros from `riscv-macros` instead of `riscv-rt-macros`
 
-## v0.17.1 - 2026-01-13
+## v0.18.0 - 2026-01-13
 
 ### Fixed
 

@@ -199,4 +199,39 @@ _default_start_trap:{pre_default_start_trap}
         .parse()
         .unwrap()
     }
+
+    /// Returns the assembly code for the `_start_<interrupt>` routine in vectored interrupt mode.
+    ///
+    /// This routine saves the trap frame, sets `a0` to the interrupt identifier, and jumps to
+    /// the common interrupt handler `_continue_interrupt_trap`.
+    ///
+    /// # Note
+    ///
+    /// This function is only needed for core interrupts when the vectored trap mode is enabled.
+    pub fn start_interrupt_trap(&self, ident: &Ident) -> TokenStream {
+        let interrupt = ident.to_string();
+        let width = self.width();
+        let trap_size = self.trap_frame().len();
+        let store = self.store_trap(|r| r == "a0");
+
+        format!(
+            r#"
+#[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))]
+core::arch::global_asm!(
+"
+.section .trap.start.{interrupt}, \"ax\"
+.balign 4
+.global _start_{interrupt}_trap
+_start_{interrupt}_trap:
+    addi sp, sp, -{trap_size} * {width}
+    {store}
+    la a0, {interrupt}
+    j _continue_interrupt_trap
+"
+);
+"#
+        )
+        .parse()
+        .unwrap()
+    }
 }

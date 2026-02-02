@@ -699,8 +699,7 @@ use riscv::register::{
     mtvec::{self as xtvec, Mtvec as Xtvec, TrapMode},
 };
 
-pub use riscv_macros::entry;
-pub use riscv_rt_macros::{core_interrupt, exception, external_interrupt};
+pub use riscv_macros::{core_interrupt, entry, exception, external_interrupt};
 pub use riscv_types::*;
 
 #[cfg(feature = "post-init")]

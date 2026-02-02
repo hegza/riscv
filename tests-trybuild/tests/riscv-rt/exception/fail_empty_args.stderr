@@ -1,0 +1,61 @@
+error: attribute expects a path to a variant of an enum that implements the `riscv_rt::ExceptionNumber` trait
+ --> tests/riscv-rt/exception/fail_empty_args.rs:1:1
+  |
+1 | #[riscv_rt::exception]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `riscv_rt::exception` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: function must be private
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:1
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  | ^^^
+
+error: function must not be const
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:5
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |     ^^^^^
+
+error: function must not be async
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:11
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |           ^^^^^
+
+error: ABI must not be specified
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:17
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                 ^^^^^^
+
+error: generics are not allowed
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:47
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                                               ^
+
+error: argument type must be `&riscv_rt::TrapFrame`
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:54
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                                                      ^
+
+error: too many input arguments
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:57
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                                                         ^^
+
+error: variadic arguments are not allowed
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:68
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                                                                    ^^
+
+error: return type must be () or !
+ --> tests/riscv-rt/exception/fail_empty_args.rs:2:77
+  |
+2 | pub const async extern "Rust" fn my_exception<T>(_a: T, _b: usize, _c: ...) -> usize {}
+  |                                                                             ^

@@ -1,0 +1,55 @@
+error: attribute expects a path to a variant of an enum that implements the `riscv_rt::CoreInterruptNumber` trait
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:1:1
+  |
+1 | #[riscv_rt::core_interrupt]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `riscv_rt::core_interrupt` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: function must be private
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:1
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  | ^^^
+
+error: function must not be const
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:5
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |     ^^^^^
+
+error: function must not be async
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:11
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |           ^^^^^
+
+error: ABI must not be specified
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:17
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |                 ^^^^^^
+
+error: generics are not allowed
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:47
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |                                               ^
+
+error: too many input arguments
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:50
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |                                                  ^^
+
+error: variadic arguments are not allowed
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:57
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |                                                         ^^
+
+error: return type must be () or !
+ --> tests/riscv-rt/core_interrupt/fail_empty_args.rs:2:66
+  |
+2 | pub const async extern "Rust" fn my_interrupt<T>(_a: T, _b: ...) -> usize {}
+  |                                                                  ^

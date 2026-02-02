@@ -3,15 +3,42 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
     parse_macro_input, punctuated::Punctuated, spanned::Spanned, token::Comma, Error, FnArg, Ident,
-    ItemFn, Result, ReturnType, Type, Visibility,
+    ItemFn, Path, Result, ReturnType, Type, Visibility,
 };
 
 pub mod asm;
+
+/// Convenience struct to represent a trap handler
+pub struct Trap {
+    /// Path to trap variant. Must implement the appropriate `riscv-types` trait.
+    path: syn::Path,
+    /// Type of trap handler
+    ty: TrapType,
+}
+
+/// Enum representing the type of trap handler
+pub enum TrapType {
+    Exception,
+    CoreInterrupt,
+    ExternalInterrupt,
+}
+
+impl TrapType {
+    /// Get the trait that must be implemented by the corresponding trap
+    fn impl_trait(&self) -> &str {
+        match self {
+            Self::Exception => "riscv_rt::ExceptionNumber",
+            Self::ExternalInterrupt => "riscv_rt::ExternalInterruptNumber",
+            Self::CoreInterrupt => "riscv_rt::CoreInterruptNumber",
+        }
+    }
+}
 
 /// Enum representing the supported runtime function attributes
 pub enum Fn {
     PostInit,
     Entry,
+    Trap(Trap),
 }
 
 impl Fn {
@@ -25,6 +52,24 @@ impl Fn {
     pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         let errors = Self::Entry.check_args_empty(args).err();
         Self::Entry.quote_fn(input, errors)
+    }
+
+    /// Convenience method to generate the token stream for trap handler attributes
+    pub fn trap(args: TokenStream, input: TokenStream, ty: TrapType) -> TokenStream {
+        let (path, errors) = match syn::parse::<Path>(args) {
+            Ok(path) => (path, None),
+            Err(e) => {
+                let path = syn::parse_str("invalid").unwrap();
+                let impl_trait = ty.impl_trait();
+                let err = Error::new(
+                    e.span(),
+                    format!("attribute expects a path to a variant of an enum that implements the `{impl_trait}` trait"),
+                );
+                (path, Some(err))
+            }
+        };
+        let trap = Trap { path, ty };
+        Self::Trap(trap).quote_fn(input, errors)
     }
 
     /// Generate the token stream for the function with the given attribute
@@ -101,6 +146,14 @@ impl Fn {
             Self::Entry => self.check_fn_args(inputs, &["usize", "usize", "usize"], errors),
             #[cfg(feature = "rvrt-u-boot")]
             Self::Entry => self.check_fn_args(inputs, &["c_int", "*const *const c_char"], errors),
+            Self::Trap(Trap { ty, .. }) => match ty {
+                TrapType::Exception => {
+                    self.check_fn_args(inputs, &["&riscv_rt::TrapFrame"], errors)
+                }
+                TrapType::CoreInterrupt | TrapType::ExternalInterrupt => {
+                    self.check_fn_args(inputs, &[], errors)
+                }
+            },
         }
     }
 
@@ -110,11 +163,12 @@ impl Fn {
         match self {
             Self::PostInit => check_output_empty(output, errors),
             Self::Entry => check_output_never(output, errors),
+            Self::Trap(_) => check_output_empty_or_never(output, errors),
         }
     }
 
     /// Additional items to append to the function for the given attribute
-    fn add_extras(&self, func: &mut ItemFn, _errors: &mut Option<Error>) -> Option<TokenStream2> {
+    fn add_extras(&self, func: &mut ItemFn, errors: &mut Option<Error>) -> Option<TokenStream2> {
         // Append to function name the prefix __riscv_rt_ (to prevent users from calling it directly)
         func.sig.ident = Ident::new(
             &format!("__riscv_rt_{}", func.sig.ident),
@@ -124,6 +178,37 @@ impl Fn {
         // Use this match to specify extra items for different functions in the future
         match self {
             Self::PostInit | Self::Entry => None,
+            Self::Trap(Trap { path, ty }) => {
+                let mut extras = vec![];
+
+                // Set ABI to extern "C"
+                func.sig.abi = Some(syn::parse(quote! { extern "C" }.into()).unwrap());
+
+                // Compile-time check to ensure the trap path implements the trap trait
+                let impl_trait = format!("::{}", ty.impl_trait());
+                let impl_trait: Path = syn::parse_str(&impl_trait).unwrap();
+
+                extras.push(quote! {
+
+                   const _: fn() = || {
+                       fn assert_impl<T: #impl_trait>(_arg: T) {}
+                       assert_impl(#path);
+                   };
+                });
+
+                if cfg!(feature = "rt-v-trap") && matches!(ty, TrapType::CoreInterrupt) {
+                    let interr_ident = &path.segments.last().unwrap().ident;
+                    match asm::RiscvArch::try_from_env() {
+                        Some(arch) => extras.push(arch.start_interrupt_trap(interr_ident)),
+                        None => combine_err(errors, Error::new(
+                            path.span(),
+                            "RISCV_RT_BASE_ISA must be defined for core interrupt handlers when `v-trap` feature is enabled",
+                        )),
+                    }
+                }
+
+                Some(quote! { #(#extras)* })
+            }
         }
     }
 
@@ -133,10 +218,11 @@ impl Fn {
         let export_name = match self {
             Self::PostInit => Some("__post_init".to_string()),
             Self::Entry => Some("main".to_string()),
+            Self::Trap(Trap { path, .. }) => Some(path.segments.last().unwrap().ident.to_string()),
         };
 
         export_name.map(|name| match self {
-            Self::PostInit => quote! {
+            Self::PostInit | Self::Trap(_) => quote! {
                 #[export_name = #name]
             },
             Self::Entry => quote! {
@@ -151,7 +237,7 @@ impl Fn {
         // Use this match to specify section names for different functions in the future
         let section_name: Option<String> = match self {
             // TODO: check if we want specific sections for these functions
-            Self::PostInit | Self::Entry => None,
+            Self::PostInit | Self::Entry | Self::Trap(_) => None,
         };
 
         section_name.map(|section| quote! {
@@ -270,5 +356,19 @@ fn check_output_empty(output: &ReturnType, errors: &mut Option<Error>) {
 fn check_output_never(output: &ReturnType, errors: &mut Option<Error>) {
     if !matches!(output, ReturnType::Type(_, ty) if matches!(**ty, Type::Never(_))) {
         combine_err(errors, Error::new(output.span(), "return type must be !"));
+    }
+}
+
+/// Make sure the output type is either `()`, `!` (never), or absent
+fn check_output_empty_or_never(output: &ReturnType, errors: &mut Option<Error>) {
+    let is_valid = matches!(output, ReturnType::Default)
+        || matches!(output, ReturnType::Type(_, ty) if matches!(**ty, Type::Tuple(ref tuple) if tuple.elems.is_empty()))
+        || matches!(output, ReturnType::Type(_, ty) if matches!(**ty, Type::Never(_)));
+
+    if !is_valid {
+        combine_err(
+            errors,
+            Error::new(output.span(), "return type must be () or !"),
+        );
     }
 }

@@ -136,6 +136,70 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     riscv_rt::Fn::entry(args, input)
 }
 
+/// Attribute to declare an exception handler.
+///
+/// The function must have the signature `[unsafe] fn([&[mut] riscv_rt::TrapFrame]) [-> !]`.
+///
+/// The argument of the macro must be a path to a variant of an enum that implements the `riscv_rt::ExceptionNumber` trait.
+///
+/// # Example
+///
+/// ``` ignore,no_run
+/// #[riscv_rt::exception(riscv::interrupt::Exception::LoadMisaligned)]
+/// fn load_misaligned(trap_frame: &mut riscv_rt::TrapFrame) -> ! {
+///     loop{};
+/// }
+/// ```
+#[cfg(feature = "riscv-rt")]
+#[proc_macro_attribute]
+pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
+    riscv_rt::Fn::trap(args, input, riscv_rt::TrapType::Exception)
+}
+
+/// Attribute to declare a core interrupt handler.
+///
+/// The function must have the signature `[unsafe] fn() [-> !]`.
+///
+/// The argument of the macro must be a path to a variant of an enum that implements the `riscv_rt::CoreInterruptNumber` trait.
+///
+/// If the `v-trap` feature is enabled, this macro generates the corresponding interrupt trap handler in assembly.
+/// This feature relies on the `RISCV_RT_BASE_ISA` environment variable being set to one of
+/// `rv32i`, `rv32e`, `rv64i`, or `rv64e`. Otherwise, this will **panic**.
+///
+/// # Example
+///
+/// ``` ignore,no_run
+/// #[riscv_rt::core_interrupt(riscv::interrupt::Interrupt::SupervisorSoft)]
+/// fn supervisor_soft() -> ! {
+///     loop{};
+/// }
+/// ```
+#[cfg(feature = "riscv-rt")]
+#[proc_macro_attribute]
+pub fn core_interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
+    riscv_rt::Fn::trap(args, input, riscv_rt::TrapType::CoreInterrupt)
+}
+
+/// Attribute to declare an external interrupt handler.
+///
+/// The function must have the signature `[unsafe] fn() [-> !]`.
+///
+/// The argument of the macro must be a path to a variant of an enum that implements the `riscv_rt::ExternalInterruptNumber` trait.
+///
+/// # Example
+///
+/// ``` ignore,no_run
+/// #[riscv_rt::external_interrupt(e310x::interrupt::Interrupt::GPIO0)]
+/// fn gpio0() -> ! {
+///     loop{};
+/// }
+/// ```
+#[cfg(feature = "riscv-rt")]
+#[proc_macro_attribute]
+pub fn external_interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
+    riscv_rt::Fn::trap(args, input, riscv_rt::TrapType::ExternalInterrupt)
+}
+
 /// Temporary patch macro to deal with LLVM bug.
 ///
 /// # Note
