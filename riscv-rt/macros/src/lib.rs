@@ -1,3 +1,5 @@
+//! This crate has been deprecated. Please use the `riscv-macros` crate instead.
+
 #![deny(warnings)]
 #![allow(unknown_lints)] // reason = "required for next line"
 #![allow(clippy::manual_is_multiple_of)] // reason = "requires MSRV bump"

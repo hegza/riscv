@@ -671,7 +671,6 @@
 //! [attr-exception]: attr.exception.html
 //! [attr-external-interrupt]: attr.external_interrupt.html
 //! [attr-core-interrupt]: attr.core_interrupt.html
-//! [attr-pre-init]: attr.pre_init.html
 //! [attr-post-init]: attr.post_init.html
 
 // NOTE: Adapted from cortex-m/src/lib.rs
@@ -699,13 +698,11 @@ use riscv::register::{
     mtvec::{self as xtvec, Mtvec as Xtvec, TrapMode},
 };
 
-pub use riscv_rt_macros::{core_interrupt, entry, exception, external_interrupt};
+pub use riscv_macros::{core_interrupt, entry, exception, external_interrupt};
 pub use riscv_types::*;
 
 #[cfg(feature = "post-init")]
-pub use riscv_rt_macros::post_init;
-#[cfg(feature = "pre-init")]
-pub use riscv_rt_macros::pre_init;
+pub use riscv_macros::post_init;
 
 /// We export this static with an informative name so that if an application attempts to link
 /// two copies of riscv-rt together, linking will fail. We also declare a links key in

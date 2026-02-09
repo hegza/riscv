@@ -43,5 +43,11 @@ pub enum Exception {
 }
 
 #[cfg(feature = "pre-init")]
-#[cfg_attr(feature = "pre-init", riscv_rt::pre_init)]
-unsafe fn pre_init() {}
+core::arch::global_asm!(
+    "
+.section .init.pre_init, \"ax\"
+.global __pre_init
+__pre_init:
+    // Do some pre-initialization work here and return
+    ret"
+);

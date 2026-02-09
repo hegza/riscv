@@ -35,7 +35,7 @@ macro_rules! cfg_global_asm {
 // - https://github.com/rust-embedded/riscv/issues/175
 // - https://github.com/rust-lang/rust/issues/80608
 // - https://github.com/llvm/llvm-project/issues/61991
-riscv_rt_macros::llvm_arch_patch!();
+riscv_macros::rvrt_llvm_arch_patch!();
 
 // Entry point of all programs (_start). It initializes DWARF call frame information,
 // the stack pointer, the frame pointer (needed for closures to work in start_rust)
@@ -217,10 +217,7 @@ _default_mp_hook:
     ret",
 );
 
-riscv_rt_macros::default_start_trap!();
-
-#[cfg(feature = "v-trap")]
-riscv_rt_macros::vectored_interrupt_trap!();
+riscv_macros::rvrt_default_start_trap!();
 
 #[rustfmt::skip]
 global_asm!(

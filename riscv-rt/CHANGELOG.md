@@ -5,9 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## v0.19.0 - Unreleased
 
-## v0.17.1 - 2026-01-13
+### Changed
+
+- Use macros from `riscv-macros` instead of `riscv-rt-macros`
+
+### Removed
+
+- We no longer re-export the `pre_init` macro. Use `core::arch::global_asm` instead.
+
+## v0.18.0 - 2026-01-13
 
 ### Fixed
 

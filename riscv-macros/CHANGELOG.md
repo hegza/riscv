@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## v0.4.1 - Unreleased
+
+### Added
+
+- New `exception`, `core_interrupt`, and `external_interrupt` macros for trap handlers.
+- New `entry` macro for the Rust entry point (for `riscv-rt`).
+- New `rvrt-u-boot` feature to adapt `entry` macro for U-Boot.
+- New `post_init` macro for Rust routines that must be executed before main.
+- New `rvrt_llvm_arch_patch` and `rvrt_default_start_trap` for generating assembly code
+  required by the `riscv-rt` crate.
+- New `riscv-rt` feature to opt-in `riscv-rt`-related macros.
+- New `rvrt-pre-default-start-trap` feature to opt-in assembly injection at the
+  beginning of `_default_start_trap`.
+- New `s-mode` feature to adapt macros to S-Mode execution.
 
 ## v0.4.0 - 2025-12-19
 
